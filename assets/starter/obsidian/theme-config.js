@@ -94,7 +94,7 @@ window.SPECTRAL_THEME = {
     warpStrength: 0.41,
     motionSpeed: 0.01,
     staticTime: 2.18,
-    ditherStrength: 0.82,
+    ditherStrength: 1,
     luminanceCap: 0.165
   },
   output: {

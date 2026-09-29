@@ -21,6 +21,7 @@
     uniform float uWarp;
     uniform float uDither;
     uniform float uLuminanceCap;
+    uniform float uLevels;
     uniform vec3 uBase;
     uniform vec3 uColors[6];
     uniform float uStrengths[6];
@@ -72,6 +73,19 @@
 
     vec3 toneMap(vec3 c) {
       return c / (1.0 + max(c - 1.0, 0.0));
+    }
+
+    vec3 linearToSrgb(vec3 c) {
+      vec3 high = 1.055 * pow(max(c, vec3(0.0031308)), vec3(1.0 / 2.4)) - 0.055;
+      return mix(c * 12.92, high, step(vec3(0.0031308), c));
+    }
+
+    // Not hash21: offsetting pixel coordinates by the seed pushes them past
+    // float precision, and the dither turns into visible stripes.
+    float ditherHash(vec2 p) {
+      vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+      p3 += dot(p3, p3.yzx + 33.33);
+      return fract((p3.x + p3.y) * p3.z);
     }
 
     void main() {
@@ -141,11 +155,13 @@
         }
       }
 
-      float dither = hash21(floor(gl_FragCoord.xy) + vec2(uSeed, -uSeed)) - 0.5;
-      color += dither * (uDither / 255.0);
-      color = toneMap(max(color, 0.0));
-      color = pow(color, vec3(1.0 / 2.2));
-      gl_FragColor = vec4(color, 1.0);
+      vec2 pixel = floor(gl_FragCoord.xy);
+      float triangle = ditherHash(pixel) + ditherHash(pixel + vec2(47.0, 113.0)) - 1.0;
+      vec3 encoded = linearToSrgb(toneMap(max(color, 0.0)));
+      // Quantize here so the result does not depend on whether the GPU rounds or
+      // truncates when it stores floats; +0.25 lands inside the chosen code either way.
+      vec3 code = clamp(floor(encoded * uLevels + 0.5 + triangle * uDither), 0.0, uLevels);
+      gl_FragColor = vec4((code + 0.25) / uLevels, 1.0);
     }
   `;
 
@@ -219,6 +235,7 @@
       }
 
       this.available = true;
+      this.levels = Math.pow(2, this.gl.getParameter(this.gl.RED_BITS) || 8) - 1;
       this.program = createProgram(this.gl);
       this.gl.useProgram(this.program);
       const buffer = this.gl.createBuffer();
@@ -243,6 +260,7 @@
         warp: uniform(this.gl, this.program, "uWarp"),
         dither: uniform(this.gl, this.program, "uDither"),
         luminanceCap: uniform(this.gl, this.program, "uLuminanceCap"),
+        levels: uniform(this.gl, this.program, "uLevels"),
         base: uniform(this.gl, this.program, "uBase"),
         colors: uniform(this.gl, this.program, "uColors[0]"),
         strengths: uniform(this.gl, this.program, "uStrengths[0]"),
@@ -297,6 +315,7 @@
       gl.uniform1f(this.locations.warp, config.field.warpStrength);
       gl.uniform1f(this.locations.dither, config.field.ditherStrength);
       gl.uniform1f(this.locations.luminanceCap, config.field.luminanceCap);
+      gl.uniform1f(this.locations.levels, this.levels);
       gl.uniform3fv(this.locations.base, new Float32Array(oklchToLinearRgb(config.base.oklch)));
       gl.uniform3fv(this.locations.colors, new Float32Array(colorValues));
       gl.uniform1fv(this.locations.strengths, new Float32Array(strengthValues));
