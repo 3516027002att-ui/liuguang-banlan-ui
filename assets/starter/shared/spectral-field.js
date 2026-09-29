@@ -199,7 +199,8 @@
       this.config = config;
       this.motionEnabled = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       this.visible = !document.hidden;
-      this.startTime = performance.now();
+      this.fieldTime = config.field.staticTime;
+      this.lastTick = null;
       this.lastFrame = 0;
       this.frameHandle = 0;
       this.gl = canvas.getContext("webgl", {
@@ -249,9 +250,13 @@
         phases: uniform(this.gl, this.program, "uPhases[0]")
       };
 
-      this.onResize = () => this.resize();
+      // Resizing clears the drawing buffer; a paused field has no next frame to repaint it.
+      this.onResize = () => {
+        if (this.resize()) this.render(performance.now(), true);
+      };
       this.onVisibility = () => {
         this.visible = !document.hidden;
+        this.lastTick = null;
         if (this.visible) this.schedule();
       };
       window.addEventListener("resize", this.onResize, { passive: true });
@@ -262,15 +267,15 @@
     }
 
     resize() {
-      if (!this.available) return;
+      if (!this.available) return false;
       const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
       const width = Math.max(1, Math.round(this.canvas.clientWidth * pixelRatio));
       const height = Math.max(1, Math.round(this.canvas.clientHeight * pixelRatio));
-      if (this.canvas.width !== width || this.canvas.height !== height) {
-        this.canvas.width = width;
-        this.canvas.height = height;
-        this.gl.viewport(0, 0, width, height);
-      }
+      if (this.canvas.width === width && this.canvas.height === height) return false;
+      this.canvas.width = width;
+      this.canvas.height = height;
+      this.gl.viewport(0, 0, width, height);
+      return true;
     }
 
     uploadConfig() {
@@ -307,8 +312,8 @@
 
     setMotion(enabled) {
       this.motionEnabled = enabled;
+      this.lastTick = null;
       if (enabled) {
-        this.startTime = performance.now();
         this.schedule();
       } else {
         this.render(performance.now(), true);
@@ -332,11 +337,14 @@
       }
       this.lastFrame = now;
       this.resize();
-      const elapsed = this.motionEnabled
-        ? ((now - this.startTime) / 1000) * this.config.field.motionSpeed
-        : this.config.field.staticTime;
+      if (this.motionEnabled) {
+        if (this.lastTick !== null) {
+          this.fieldTime += (Math.max(0, now - this.lastTick) / 1000) * this.config.field.motionSpeed;
+        }
+        this.lastTick = now;
+      }
       this.gl.uniform2f(this.locations.resolution, this.canvas.width, this.canvas.height);
-      this.gl.uniform1f(this.locations.time, elapsed);
+      this.gl.uniform1f(this.locations.time, this.fieldTime);
       this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
     }
   }
