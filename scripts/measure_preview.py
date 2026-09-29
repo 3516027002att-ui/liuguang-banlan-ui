@@ -127,7 +127,7 @@ def measure(image_path: pathlib.Path, config: dict, block: int = 8) -> dict:
             "p95": round(float(np.percentile(shift, 95)), 5),
         },
         "shiftToTint": round(abs(float(shift.mean())) / mean_tint, 3) if mean_tint else None,
-        "grayRatio": round(float(gray.mean()), 4),
+        "grayRatio": round(float(gray.mean()), 4) if config["mode"] == "opal" else None,
         "luminance": {
             "mean": round(float(luminance.mean()), 5),
             "p05": round(float(np.percentile(luminance, 5)), 5),

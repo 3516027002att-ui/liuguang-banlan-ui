@@ -100,6 +100,12 @@ class MeasurePreviewTest(unittest.TestCase):
         self.assertEqual(m["grayRatio"], 0)
         self.assertEqual(m["chromaticPixelRatio"], 1.0)
 
+    def test_gray_ratio_is_only_defined_for_opal(self):
+        cfg = config(base=(0.098, 0.012, 236))
+        cfg["mode"] = "obsidian"
+        m = self.measure(cfg, flat(base_lab(cfg) + np.array([0.15, 0.0, 0.0])))
+        self.assertIsNone(m["grayRatio"])
+
     def test_block_average_absorbs_dither(self):
         cfg = config()
         rng = np.random.default_rng(7)
