@@ -1,6 +1,12 @@
 (function () {
   "use strict";
 
+  // The field drifts slowly. Spacing frames so each advances field time by at most
+  // MAX_FIELD_STEP keeps the change per frame below a visible step at less GPU cost.
+  const MIN_FRAME_INTERVAL = 50;
+  const MAX_FRAME_INTERVAL = 250;
+  const MAX_FIELD_STEP = 0.003;
+
   const VERTEX_SHADER = `
     attribute vec2 aPosition;
     void main() {
@@ -50,8 +56,8 @@
       float amplitude = 0.52;
       mat2 rotation = mat2(0.80, 0.60, -0.60, 0.80);
       for (int i = 0; i < 5; i++) {
-        float enabled = 1.0 - step(uOctaves, float(i) + 0.5);
-        value += amplitude * noise(p) * enabled;
+        if (float(i) + 0.5 >= uOctaves) break;
+        value += amplitude * noise(p);
         p = rotation * p * 2.03 + vec2(13.1, 7.7);
         amplitude *= 0.48;
       }
@@ -116,6 +122,11 @@
         + uSeed * 0.000017
       );
       for (int i = 0; i < 6; i++) {
+        float hueStop = float(i) / 6.0;
+        float hueDistance = abs(spectralFlow - hueStop);
+        hueDistance = min(hueDistance, 1.0 - hueDistance);
+        float hueBand = 1.0 - smoothstep(0.035, 0.205, hueDistance);
+        if (hueBand <= 0.0) continue;
         float field = colorField(
           warped + q * (0.21 + float(i) * 0.025),
           uPhases[i],
@@ -123,10 +134,6 @@
           uFieldScales[i]
         );
         float softBand = smoothstep(0.22, 0.78, field);
-        float hueStop = float(i) / 6.0;
-        float hueDistance = abs(spectralFlow - hueStop);
-        hueDistance = min(hueDistance, 1.0 - hueDistance);
-        float hueBand = 1.0 - smoothstep(0.035, 0.205, hueDistance);
         float shapedBand = pow(hueBand, 2.2) * (0.64 + softBand * 0.36);
         float weight = shapedBand * sqrt(max(uStrengths[i], 0.0));
         colorSum += uColors[i] * weight;
@@ -348,9 +355,15 @@
       });
     }
 
+    frameInterval() {
+      const speed = this.config.field.motionSpeed;
+      if (!(speed > 0)) return MAX_FRAME_INTERVAL;
+      return Math.min(MAX_FRAME_INTERVAL, Math.max(MIN_FRAME_INTERVAL, (MAX_FIELD_STEP / speed) * 1000));
+    }
+
     render(now, force) {
       if (!this.available) return;
-      if (!force && now - this.lastFrame < 50) {
+      if (!force && now - this.lastFrame < this.frameInterval()) {
         this.schedule();
         return;
       }
