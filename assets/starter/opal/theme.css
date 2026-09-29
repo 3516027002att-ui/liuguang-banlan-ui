@@ -17,9 +17,9 @@
   --line-strong: oklch(26% 0.025 246 / 0.20);
   --state-hover: oklch(100% 0 0 / 0.48);
   --state-selected: oklch(91% 0.024 222 / 0.48);
-  --brand-mark: radial-gradient(circle at 35% 30%, oklch(100% 0 0), oklch(88% 0.055 201) 42%, oklch(86% 0.05 318));
-  --brand-mark-detail: oklch(40% 0.04 236 / 0.46);
-  --account-orb: linear-gradient(135deg, oklch(87% 0.05 198), oklch(91% 0.04 315));
+  --brand-mark: var(--ink-primary);
+  --brand-mark-detail: oklch(98% 0.004 95 / 0.72);
+  --account-orb: oklch(90% 0.006 240);
   --status-good: oklch(58% 0.11 158);
   --status-good-wash: oklch(58% 0.11 158 / 0.13);
   --active-rule: oklch(54% 0.08 216);
@@ -31,7 +31,8 @@
   --primary-border: oklch(25% 0.025 240 / 0.70);
   --primary-ink: oklch(98% 0.004 95);
   --scroll-thumb: oklch(35% 0.02 240 / 0.22);
-  --observation-ribbon: linear-gradient(90deg, oklch(72% 0.08 22 / 0.68), oklch(73% 0.07 193 / 0.72), oklch(72% 0.07 302 / 0.66), oklch(76% 0.07 75 / 0.62));
+  --observation-ribbon: var(--line-strong);
+  --fallback-alpha: 0.24;
   --workbench-shadow: 0 1px 2px oklch(20% 0.02 240 / 0.035), 0 8px 24px oklch(35% 0.03 240 / 0.035);
   --panel-shadow: -12px 0 40px oklch(30% 0.03 240 / 0.10);
   --mini-map: oklch(95% 0.014 204 / 0.62);
@@ -43,14 +44,13 @@
 
 .field-fallback body {
   background:
-    radial-gradient(ellipse at 12% 18%, oklch(91% 0.045 199 / 0.72), transparent 46%),
-    radial-gradient(ellipse at 78% 22%, oklch(93% 0.045 22 / 0.68), transparent 48%),
-    radial-gradient(ellipse at 44% 82%, oklch(91% 0.042 310 / 0.58), transparent 54%),
+    linear-gradient(100deg,
+      oklch(93.5% 0.047 18 / var(--fallback-alpha)),
+      oklch(94% 0.041 62 / var(--fallback-alpha)),
+      oklch(93.6% 0.036 159 / var(--fallback-alpha)),
+      oklch(92.8% 0.043 201 / var(--fallback-alpha)),
+      oklch(91.8% 0.05 248 / var(--fallback-alpha)),
+      oklch(92.5% 0.045 304 / var(--fallback-alpha)),
+      oklch(93.5% 0.047 18 / var(--fallback-alpha))),
     var(--app-canvas);
-}
-
-@media (color-gamut: p3) {
-  :root {
-    --observation-ribbon: linear-gradient(90deg, oklch(72% 0.095 22 / 0.68), oklch(73% 0.085 193 / 0.72), oklch(72% 0.085 302 / 0.66), oklch(76% 0.082 75 / 0.62));
-  }
 }

@@ -37,7 +37,7 @@ Read [style-contract.md](references/style-contract.md) before choosing a mode or
 
 - Choose a neutral, information-dense workbench domain such as field research, inventory, monitoring, or operations.
 - Use a continuous three-pane or similarly coherent workspace: navigation, queue/list, detail, metadata, and one signature observation band.
-- Keep color in the field, ribbon, markers, and state accents; keep text, controls, boundaries, and semantic hierarchy stable.
+- Keep color in the field, map markers, and state accents. Keep the logo, avatar, rules, text, controls, boundaries, and semantic hierarchy neutral; do not paint them with palette gradients.
 - Prefer restrained surfaces and weak fills. Avoid turning every region into a floating card.
 
 ### 4. Implement the parameter contract
