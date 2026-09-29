@@ -15,6 +15,10 @@ Copy this directory into the skill location used by your agent, or install it fr
 
 Every starter exposes `overallColorIntensity` and per-color `intensity` values. Reports should also include each color's OKLCH values, peak opacity, spatial scale, phase, measured coverage, and effective share. If the executing model cannot inspect screenshots natively, the report must mark visual verification as `visual-unverified` even when deterministic pixel checks pass.
 
+## Development
+
+Run the script tests with `python -m unittest discover -s tests`. Preview the starters with `python scripts/serve_preview.py . --port 8000` and open `/assets/starter/`; the server disables caching so an edited manifest is not served stale.
+
 ## License
 
 Apache-2.0. See [LICENSE.txt](LICENSE.txt).

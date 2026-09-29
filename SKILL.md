@@ -72,8 +72,10 @@ Maintain a serializable manifest with these top-level fields:
 - Use a procedural fBm/domain-warp field or an equivalent continuous field; keep it behind the interface with `pointer-events: none`.
 - Use broad flowing hue regions or ribbons, not obvious radial blobs, spotlight circles, or hard rainbow bands.
 - Upload the complete palette and per-color field scales to the renderer. Apply the dark-mode luminance cap after palette mixing.
-- Provide a CSS fallback with comparable visual intent when WebGL is unavailable.
-- Pause or freeze motion when the document is hidden or `prefers-reduced-motion` is active.
+- Encode output with the sRGB transfer function, dither in output codes, and quantize in the shader. A power-curve encode or a weak linear-light dither biases the output, most visibly in low-intensity fields and near black.
+- Provide a CSS fallback with comparable visual intent when WebGL is unavailable, such as one soft hue-ordered sweep calibrated against the WebGL field; do not use fixed radial spots.
+- Pause or freeze motion when the document is hidden or `prefers-reduced-motion` is active, and keep field time continuous so pausing and resuming do not jump.
+- Repaint after every resize. Resizing clears the canvas, and a paused field has no next frame to redraw it.
 - Keep the renderer local and dependency-light; do not require remote fonts, images, or APIs for the starter.
 
 ### 6. Preserve interaction and accessibility
@@ -85,9 +87,9 @@ Maintain a serializable manifest with these top-level fields:
 ### 7. Validate and report
 
 - Scaffold a clean starter with `scripts/scaffold_template.py` when a neutral implementation is needed.
-- Run `scripts/validate_manifest.py` on each theme config before rendering.
-- Capture desktop and mobile screenshots with a real browser. Inspect them directly if visual capability is available.
-- Run `scripts/measure_preview.py` on the pure field screenshot and retain measured chromatic ratio, luminance statistics, per-color coverage, and effective share.
+- Run `scripts/validate_manifest.py` on each theme config before rendering, and resolve its warnings.
+- Serve previews with `scripts/serve_preview.py`, which disables caching, then capture desktop and mobile screenshots with a real browser. Inspect them directly if visual capability is available.
+- Run `scripts/measure_preview.py` on the pure field screenshot and retain measured chromatic ratio, tint, lightness shift, gray ratio, per-color coverage, and effective share.
 - Report configured parameters separately from measured values; do not imply that pixel attribution is an exact shader contribution.
 - Use `partial`, `visual-unverified`, or `blocked` when a required capability or native check is unavailable.
 
@@ -106,13 +108,16 @@ Use the bundled starter under `assets/starter/` as a neutral base. Copy only the
 ### scripts/
 
 - `scaffold_template.py`: copy the neutral starter for `opal`, `obsidian`, or both.
-- `validate_manifest.py`: parse a JavaScript manifest through Node and validate required fields and ranges.
-- `measure_preview.py`: measure a rendered pure-field PNG against the configured OKLCH palette.
+- `validate_manifest.py`: parse a JavaScript manifest through Node, validate required fields and ranges, and warn about hue order and color count.
+- `measure_preview.py`: measure a rendered pure-field PNG as OKLab deviation from the configured base, including lightness shift and gray ratio.
+- `serve_preview.py`: serve a directory locally with caching disabled.
+
+Run `python -m unittest discover -s tests` after changing a script.
 
 ### references/
 
-- `style-contract.md`: mode-specific visual rules and recommended parameter ranges.
-- `verification.md`: visual-capability gate, browser QA, pixel measurement, and report schema.
+- `style-contract.md`: mode-specific visual rules, recommended parameter ranges, and calibration for pages where no panel covers the field.
+- `verification.md`: visual-capability gate, browser QA, pixel measurement, darkening check, and report schema.
 
 ### assets/
 
