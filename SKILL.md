@@ -51,16 +51,18 @@ Maintain a serializable manifest with these top-level fields:
   base: { oklch },
   colors: [{
     id, label, oklch, srgbFallback,
-    intensity, peakOpacity, lightnessBias,
+    intensity, peakOpacity,
     fieldScale, phase,
     measuredCoverage, effectiveShare
   }],
   field: { scale, octaves, warpStrength, motionSpeed, staticTime, ditherStrength, luminanceCap },
-  output: { colorSpace, p3Enhancement, reducedMotion }
+  output: { colorSpace, reducedMotion }
 }
 ```
 
-- Keep every intensity in `[0, 1]`; make `overallColorIntensity` the global budget and `colors[].intensity` the per-color budget.
+- Keep every intensity in `[0, 1]`; make `overallColorIntensity` the global budget and `colors[].intensity` the per-color budget. The renderer multiplies `intensity` by `peakOpacity`, so treat `peakOpacity` as the calibrated strength at full intensity.
+- Order `colors` by hue. The renderer draws six hue stops around a loop and mixes each color with its array neighbors; near-complementary neighbors mix toward gray.
+- `luminanceCap` applies only in `obsidian`. `ditherStrength` is the dither amplitude in output codes; `1` removes quantization bias.
 - Use OKLCH as the authoring space and provide an sRGB fallback for non-OKLCH contexts.
 - Keep the seed, static frame, phases, and field scales deterministic; do not use random per render.
 - Expose sliders for the global intensity and every configured color. Make reset, JSON export, and copy actions available.

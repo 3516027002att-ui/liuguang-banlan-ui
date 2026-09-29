@@ -321,7 +321,7 @@
       gl.uniform1f(this.locations.octaves, config.field.octaves);
       gl.uniform1f(this.locations.warp, config.field.warpStrength);
       gl.uniform1f(this.locations.dither, config.field.ditherStrength);
-      gl.uniform1f(this.locations.luminanceCap, config.field.luminanceCap);
+      gl.uniform1f(this.locations.luminanceCap, config.field.luminanceCap ?? 1);
       gl.uniform1f(this.locations.levels, this.levels);
       gl.uniform3fv(this.locations.base, new Float32Array(oklchToLinearRgb(config.base.oklch)));
       gl.uniform3fv(this.locations.colors, new Float32Array(colorValues));
